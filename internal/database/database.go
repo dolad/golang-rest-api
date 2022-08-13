@@ -6,6 +6,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	log "github.com/sirupsen/logrus"
 )
 
 // NewDatabase - returns a pointer to a new database connection
@@ -18,7 +19,7 @@ func NewDatabase() (*gorm.DB, error) {
 	dbPort := os.Getenv("DB_PORT")
 
 	connectionString := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", dbHost, dbPort, dbUsername, dbTable, dbPassword)
-	fmt.Println(connectionString)
+	log.Info(connectionString)
 	db, err := gorm.Open("postgres", connectionString)
 	if err != nil {
 		return db, err

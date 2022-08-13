@@ -1,20 +1,27 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/dolad/rest-api/internal/comment"
 	"github.com/dolad/rest-api/internal/database"
 	transportHttp "github.com/dolad/rest-api/internal/transport/http"
+	log "github.com/sirupsen/logrus"
 )
 
 // App struct  whiich contains things like pointers to database
 type App struct {
+	Name    string
+	Version string
 }
 
 func (app *App) Run() error {
-	fmt.Println("Setting Up our App")
+	log.SetFormatter(&log.JSONFormatter{})
+	log.WithFields(
+		log.Fields{
+			"AppName":    app.Name,
+			"AppVersion": app.Version,
+		}).Info("Setting Up Our APP")
 	var err error
 	db, err := database.NewDatabase()
 	if err != nil {
@@ -23,6 +30,7 @@ func (app *App) Run() error {
 	err = database.MigrateDB(db)
 
 	if err != nil {
+		log.Error("failed to setup database")
 		return err
 	}
 	commentService := comment.NewService(db)
@@ -30,17 +38,22 @@ func (app *App) Run() error {
 	handler.SetupRoutes()
 
 	if err := http.ListenAndServe(":8080", handler.Router); err != nil {
-		fmt.Println("Failed to setup server")
+		log.Error("Failed to set up server")
 		return err
 	}
+	log.Info("App startup successful")
 	return nil
 }
 
 func main() {
-	fmt.Println("Go rest api")
-	app := App{}
+
+	app := App{
+		Name:    "Comment API",
+		Version: "1.0",
+	}
 	if err := app.Run(); err != nil {
-		fmt.Println("Error starting the rest api")
+		log.Error(err)
+		log.Fatal("Error starting up our REST API")
 	}
 
 }
